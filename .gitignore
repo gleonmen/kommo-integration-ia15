@@ -1,0 +1,52 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+!.env.template
+support_tools/.env
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# FastAPI / local runtime artifacts
+*.log
+logs/
+*.pid
+*.db
+*.sqlite
+*.sqlite3
+
+# Jupyter / notebooks checkpoints
+.ipynb_checkpoints/
+
+# Local editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local agent/tooling metadata
+.agents/
+.codex/
+
+# ngrok local config and binaries
+ngrok
+ngrok.exe
+ngrok.yml

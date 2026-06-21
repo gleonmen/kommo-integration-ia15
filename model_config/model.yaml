@@ -1,0 +1,21 @@
+meta:
+  name: kommo-agent-llm
+  version: 1.0.0
+  description: Configuración del LLM y memoria del agente vendedor (Andrea) integrado con Kommo CRM.
+  updated_at: 2026-05-25
+  author: kinofuente@ariaia.com
+
+llm:
+  provider: openai
+  model: gpt-4.1
+  temperature: 0
+  # max_tokens: null
+  # top_p: 1
+  # timeout: 60
+
+memory:
+  # Memoria persistente en PostgreSQL (Supabase). La conexión se construye
+  # desde las variables DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME del .env.
+  # La key de memoria por conversación es el lead_id de Kommo.
+  token_limit: 3000
+  table_name: kommo_chat_history
