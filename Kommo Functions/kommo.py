@@ -3,6 +3,15 @@ import requests
 from urllib.parse import parse_qs
 
 
+def _get_env(*names: str) -> str | None:
+    """Return the first configured environment variable from the provided names."""
+    for name in names:
+        value = os.getenv(name)
+        if value:
+            return value
+    return None
+
+
 def parse_kommo_webhook(body: bytes) -> dict:
     """Parsea el webhook de Kommo (form-urlencoded)"""
     parsed = parse_qs(body.decode('utf-8'))
@@ -63,7 +72,7 @@ def update_lead_with_response(lead_id: int, response_text: str):
     """Actualiza el lead con la respuesta de IA y activa el switch"""
     subdomain = os.getenv("KOMMO_SUBDOMAIN")
     access_token = os.getenv("KOMMO_ACCESS_TOKEN")
-    response_field_id = os.getenv("KOMMO_RESPONSE_FIELD_ID")
+    response_field_id = _get_env("KOMMO_RESPONSE_FIELD_ID", "KOMMO_RESPUESTA_FIELD_ID")
     switch_field_id = os.getenv("KOMMO_SWITCH_FIELD_ID")
     
     url = f"https://{subdomain}.kommo.com/api/v4/leads/{lead_id}"
@@ -100,7 +109,7 @@ def launch_salesbot(lead_id: int):
     """Lanza el Salesbot para que envíe la respuesta al cliente"""
     subdomain = os.getenv("KOMMO_SUBDOMAIN")
     access_token = os.getenv("KOMMO_ACCESS_TOKEN")
-    bot_id = os.getenv("KOMMO_SALESBOT_ID")
+    bot_id = _get_env("KOMMO_SALESBOT_ID", "KOMMO_SALESBOOT_ID")
     
     # Endpoint correcto: API v2
     url = f"https://{subdomain}.kommo.com/api/v2/salesbot/run"

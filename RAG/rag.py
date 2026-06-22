@@ -20,7 +20,8 @@ from llama_cloud.lib.index import LlamaCloudIndex
 
 # Configuración de LlamaCloud
 LLAMA_CLOUD_API_KEY = os.getenv("LLAMA_CLOUD_API_KEY")
-LLAMA_CLOUD_INDEX_NAME = "productos_de_salud_aidev15_kommo_crm"
+LLAMA_CLOUD_INDEX_NAME = os.getenv("LLAMA_CLOUD_INDEX_NAME", "productos_de_salud_aidev15_kommo_crm")
+LLAMA_CLOUD_PROJECT_NAME = os.getenv("LLAMA_CLOUD_PROJECT_NAME", "Default")
 
 
 # ==================== PIPELINE RAG ====================
@@ -112,7 +113,7 @@ def ingest_data():
         logging.info(f"🔍 Buscando índice existente '{LLAMA_CLOUD_INDEX_NAME}'...")
         index = LlamaCloudIndex(
             name=LLAMA_CLOUD_INDEX_NAME,
-            project_name="Default",
+            project_name=LLAMA_CLOUD_PROJECT_NAME,
             api_key=LLAMA_CLOUD_API_KEY,
         )
         index_exists = True
@@ -141,7 +142,7 @@ def ingest_data():
             index = LlamaCloudIndex.from_documents(
                 documents=documents,
                 name=LLAMA_CLOUD_INDEX_NAME,
-                project_name="Default",
+                project_name=LLAMA_CLOUD_PROJECT_NAME,
                 api_key=LLAMA_CLOUD_API_KEY,
             )
             logging.info(f"✅ {len(documents)} documentos subidos exitosamente.")

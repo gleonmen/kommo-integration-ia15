@@ -14,13 +14,14 @@ Arquitectura tool-calling:
   el entrypoint lo use al construir la memoria por lead.
 
 - `build_agent_for_lead(lead_id)` se llama por cada mensaje entrante. Construye
-  un FunctionAgent ligero con los 6 tools enlazados a ese lead_id concreto:
+  un FunctionAgent ligero con los 7 tools enlazados a ese lead_id concreto:
     1. knowledge_base (retrieval del catálogo, compartido)
     2. move_to_Lead_Interesado
     3. move_to_Lead_Calificado
     4. move_to_Cerrar_Venta
-    5. update_Marca_de_Interes
-    6. update_Metodo_de_Pago
+    5. Tarea-send_notification_by_telegram
+    6. update_Marca_de_Interes
+    7. update_Metodo_de_Pago
   El agente DECIDE cuándo invocar cada tool según el contexto.
 """
 
@@ -31,10 +32,11 @@ from llama_index.core.agent.workflow import FunctionAgent
 from llama_index.llms.openai import OpenAI
 
 from chat_history import build_chat_store
-from tools.retrieval import get_index, get_retrieval_tool
+from tools.retrieval import build_query_engine, get_index, get_retrieval_tool
 from tools.move_lead_to_Lead_Interesado import get_move_to_Lead_Interesado_tool
 from tools.move_lead_to_Lead_Calificado import get_move_to_Lead_Calificado_tool
 from tools.move_lead_to_Cerrar_Venta import get_move_to_Cerrar_Venta_tool
+from tools.send_notification_by_telegram import get_send_notification_by_telegram_tool
 from tools.update_data_Marca_de_Interes import get_update_Marca_de_Interes_tool
 from tools.update_data_Metodo_de_Pago import get_update_Metodo_de_Pago_tool
 
@@ -64,6 +66,7 @@ def _render_system_prompt(bot_name: str) -> str:
 
 _llm = None
 _retrieval_tool = None
+_query_engine = None
 _system_prompt = None
 
 
@@ -77,7 +80,7 @@ def init_resources(bot_name: str):
         - chat_store: PostgresChatStore compartido entre leads
         - token_limit: tope de tokens del historial, leído del YAML
     """
-    global _llm, _retrieval_tool, _system_prompt
+    global _llm, _retrieval_tool, _query_engine, _system_prompt
 
     config = _load_yaml(LLM_CONFIG_PATH)
     llm_cfg = config["llm"]
@@ -89,13 +92,29 @@ def init_resources(bot_name: str):
     )
 
     index = get_index()
-    _retrieval_tool = get_retrieval_tool(index, _llm)
+    _query_engine = build_query_engine(index, _llm)
+    _retrieval_tool = get_retrieval_tool(index, _llm, query_engine=_query_engine)
 
     _system_prompt = _render_system_prompt(bot_name)
 
     chat_store = build_chat_store(table_name=mem_cfg["table_name"])
 
     return chat_store, mem_cfg["token_limit"]
+
+
+def retrieve_catalog_context(query: str) -> dict:
+    """Return a catalog answer from LlamaCloud before the agent responds."""
+    if _query_engine is None:
+        raise RuntimeError(
+            "Recursos no inicializados. Llama a init_resources(bot_name) primero."
+        )
+
+    response = _query_engine.query(query)
+    source_nodes = getattr(response, "source_nodes", []) or []
+    return {
+        "text": str(response).strip(),
+        "source_count": len(source_nodes),
+    }
 
 
 # ──────────────────────────────────────────────
@@ -119,6 +138,7 @@ def build_agent_for_lead(lead_id: int) -> FunctionAgent:
         get_move_to_Lead_Interesado_tool(lead_id),
         get_move_to_Lead_Calificado_tool(lead_id),
         get_move_to_Cerrar_Venta_tool(lead_id),
+        get_send_notification_by_telegram_tool(lead_id),
         get_update_Marca_de_Interes_tool(lead_id),
         get_update_Metodo_de_Pago_tool(lead_id),
     ]

@@ -10,6 +10,7 @@ Docs: https://developers.kommo.com/reference/updating-single-lead
 import os
 import requests
 from llama_index.core.tools import FunctionTool
+from tools.send_notification_by_telegram import notify_lead_status_change
 
 
 def move_lead_to_Lead_Calificado(lead_id: int) -> bool:
@@ -42,6 +43,7 @@ def move_lead_to_Lead_Calificado(lead_id: int) -> bool:
     response = requests.patch(url, headers=headers, json=payload)
 
     if response.status_code == 200:
+        notify_lead_status_change(lead_id, "Lead Calificado", status_id)
         print(f"🔀 Lead {lead_id} movido a 'Lead Calificado' (status {status_id})")
         return True
     else:

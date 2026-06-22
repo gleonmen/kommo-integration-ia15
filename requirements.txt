@@ -8,13 +8,11 @@ llama-index-embeddings-openai
 llama-index-llms-openai
 requests
 
-ngrok
-
-#PostgreSQL (Supabase) para historial de conversación
+# PostgreSQL/Supabase chat history
 llama-index-storage-chat-store-postgres
 psycopg[binary]
 asyncpg
 
-#Estos son para FastAPI
+# FastAPI runtime
 fastapi
 uvicorn
